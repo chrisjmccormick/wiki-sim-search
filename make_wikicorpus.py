@@ -43,7 +43,7 @@ if __name__ == '__main__':
     program = os.path.basename(sys.argv[0])
     logger = logging.getLogger(program)
 
-    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', datefmt='%H:%M:%S')
     logging.root.setLevel(level=logging.INFO)
     logger.info("running %s" % ' '.join(sys.argv))
   
@@ -60,61 +60,42 @@ if __name__ == '__main__':
 
         # Create an empty dictionary
         dictionary = Dictionary()
-    
-        print 'Creating WikiCorpus'    
         
         # Create the WikiCorpus object. This doesn't do any processing yet since
         # we've supplied the dictionary.
         wiki = WikiCorpus(dump_file, dictionary=dictionary) 
         
-        # Turn on metadata so that wiki.get_texts() returns the article titles.
-        wiki.metadata = True         
-        
-        # Wiki is first scanned for all distinct word types (~7M). The types that
-        # appear in more than 10% of articles are removed and from the rest, the
-        # `keep_words` most frequent types are kept.
-        keep_words = 100000
-        
-        # Now it's time to parse all of Wikipedia and build the dictionary.
-        # This is a long process, 3.2hrs. on my Intel i7 4770
-        
-        # Maintain a list of the article titles.
-        article_ids = []
+        print 'Parsing Wikipedia to build Dictionary...\n'    
+        sys.stdout.flush()
         
         t0 = time.time()
-        
-        docnum = 0
-        
-        # For all ~5M articles in Wikipedia...
+
+        # Now it's time to parse all of Wikipedia and build the dictionary.
+        # This is a long process, 3.2hrs. on my Intel i7 4770. It will update
+        # you at every 10,000 documents.
+        #
         # wiki.get_texts() will only return articles which pass a couple 
         # filters that weed out stubs, redirects, etc. If you included all of
         # those, Wikpedia is more like ~17M articles.
-        for (tokens, (pageid, title)) in wiki.get_texts():
-            
-            # Store the article title.
-            article_ids.append((pageid, title))
-            
-            # Update progress every 10,000 articles.
-            if docnum % 10000 == 0:
-                print "Adding document %8d   dictionary size: %8d" % (docnum, len(dictionary))
-                sys.stdout.flush()  
-                  #if len(dictionary) > 200000:
-                  #      dictionary.filter_extremes(no_below=0, no_above=1.0, keep_n=prune_at)
-                  
-                    # I wasn't getting this printout, so I'm trying to force it...                
-                    #
-        
-            # Add the words in the article to the dictionary.
-            # Note that this also generates a bag of words vector, but we're 
-            # not keeping it. The dictionary hasn't been finalized yet, so we 
-            # don't know the right mapping of words to ids yet.
-            dictionary.doc2bow(tokens, allow_update=True)        
-            
-            docnum += 1
-            
-                
+        #
+        # For each article, it's going to add the words in the article to the 
+        # dictionary.
+        # 
+        # If you look inside add_documents, you'll see that it calls doc2bow--
+        # this generates a bag of words vector, but we're not keeping it. The
+        # dictionary isn't finalized until all of the articles have been
+        # scanned, so we don't know the right mapping of words to ids yet.
+        #
+        # You can use the prune_at parameter to prevent the dictionary from
+        # growing too large during this process, but I think it's interesting
+        # to see the total count of unique tokens before pruning.
+        dictionary.add_documents(wiki.get_texts(), prune_at=None)            
+                        
         print 'Building dictionary took %.2f hrs.' % ((time.time() - t0) / 3600)
         print '%d unique tokens before pruning.' % len(dictionary)
+        sys.stdout.flush()
+        
+        keep_words = 100000    
     
         # The initial dictionary is huge (~8.75M words in my Wikipedia dump), 
         # so let's filter it down. We want to keep the words that are neither 
@@ -129,14 +110,7 @@ if __name__ == '__main__':
         # TODO -- This text format lets you peruse it, but you can
         # compress it better as binary...
         wiki.dictionary.save_as_text('./data/dictionary.txt.bz2')
-        
-        # Write out the article titles to disk using some utilities from 
-        # gensim.
-        with utils.smart_open('./data/articles.txt.bz2', 'wb') as fout:
-            for pageid, title in article_ids:
-                line = "%i\t%s\n" % (pageid, title)
-                fout.write(utils.to_utf8(line))
-    
+            
     # ======== STEP 2: Convert Articles To Bag-of-words ========    
     # Now that we have our finalized dictionary, we can create bag-of-words
     # representations for the Wikipedia articles. This means taking another
@@ -147,15 +121,23 @@ if __name__ == '__main__':
         dictionary = Dictionary.load_from_text('./data/dictionary.txt.bz2')
         wiki = WikiCorpus(dump_file, dictionary=dictionary)    
     
-        print 'Converting to bag of words...'
+        # Turn on metadata so that wiki.get_texts() returns the article titles.
+        wiki.metadata = True         
+    
+        print '\n======== Converting to bag of words ========\n'
+        sys.stdout.flush()
+        
         t0 = time.time()
     
         # Generate bag-of-words vectors (term-document frequency matrix) and 
         # write these directly to disk.
         # On my machine, this took 3.53 hrs. 
+        # By setting metadata = True, this will also record all of the article
+        # titles into a separate pickle file, 'bow.mm.metadata.cpickle'
         MmCorpus.serialize('./data/bow.mm', wiki, metadata=True, progress_cnt=10000)
         
-        print 'Conversion to bag-of-words took %.2f hrs.' % ((time.time() - t0) / 3600)
+        print '\nConversion to bag-of-words took %.2f hrs.\n' % ((time.time() - t0) / 3600)
+        sys.stdout.flush()
     
         # To clean up some memory, we can delete our original dictionary and 
         # wiki objects, and load back the dictionary directly from the file.
