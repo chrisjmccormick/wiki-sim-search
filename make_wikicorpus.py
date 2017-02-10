@@ -13,11 +13,14 @@ This creates the following files:
 
 """
 
-from gensim.models import TfidfModel
-from gensim.corpora import MmCorpus
-from gensim.corpora import Dictionary, WikiCorpus
+from gensim.models import TfidfModel, LsiModel
+from gensim.corpora import Dictionary, WikiCorpus, MmCorpus
+from gensim import utils
 import time
 import sys
+import logging
+import os
+
 
    
 
@@ -26,13 +29,29 @@ import sys
 # This little check has to do with the multiprocess module (which is used by
 # WikiCorpus). Without it, the code will spawn infinite processes and hang!
 if __name__ == '__main__':
+    
+    # Set up logging.
+    
+    # This little snippet is to fix an issue with qtconsole that you may or
+    # may not have... Without this, I don't see any logs in Spyder.
+    # Source: http://stackoverflow.com/questions/24259952/logging-module-does-not-print-in-ipython
+    root = logging.getLogger()
+    for handler in root.handlers[:]:
+        root.removeHandler(handler)
+
+    # Create a logger
+    program = os.path.basename(sys.argv[0])
+    logger = logging.getLogger(program)
+
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s')
+    logging.root.setLevel(level=logging.INFO)
+    logger.info("running %s" % ' '.join(sys.argv))
   
     # Download this file to get the latest wikipedia dump:
     # https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
     # On Jan 18th, 2017 it was ~13GB
     dump_file = './data/enwiki-latest-pages-articles.xml.bz2'
     
-       
     # ======== STEP 1: Build Dictionary =========            
     # The first step is to parse through all of Wikipedia and identify all of
     # the unique words that we want to have in our dictionary.   
@@ -107,14 +126,26 @@ if __name__ == '__main__':
         
         # Write out the dictionary to disk.
         # For my run, this file is 769KB when compressed.
-        # TODO -- Why text and not other formats?
+        # TODO -- This text format lets you peruse it, but you can
+        # compress it better as binary...
         wiki.dictionary.save_as_text('./data/dictionary.txt.bz2')
+        
+        # Write out the article titles to disk using some utilities from 
+        # gensim.
+        with utils.smart_open('./data/articles.txt.bz2', 'wb') as fout:
+            for pageid, title in article_ids:
+                line = "%i\t%s\n" % (pageid, title)
+                fout.write(utils.to_utf8(line))
     
     # ======== STEP 2: Convert Articles To Bag-of-words ========    
     # Now that we have our finalized dictionary, we can create bag-of-words
     # representations for the Wikipedia articles. This means taking another
     # pass over the Wikipedia dump!
-    if False:
+    if True:
+    
+        # Load the dictionary if you're just running this section.
+        dictionary = Dictionary.load_from_text('./data/dictionary.txt.bz2')
+        wiki = WikiCorpus(dump_file, dictionary=dictionary)    
     
         print 'Converting to bag of words...'
         t0 = time.time()
@@ -122,7 +153,7 @@ if __name__ == '__main__':
         # Generate bag-of-words vectors (term-document frequency matrix) and 
         # write these directly to disk.
         # On my machine, this took 3.53 hrs. 
-        MmCorpus.serialize('./data/bow.mm', wiki, progress_cnt=10000)
+        MmCorpus.serialize('./data/bow.mm', wiki, metadata=True, progress_cnt=10000)
         
         print 'Conversion to bag-of-words took %.2f hrs.' % ((time.time() - t0) / 3600)
     
@@ -133,11 +164,11 @@ if __name__ == '__main__':
         
         # Load the dictionary back from disk.
         # (0.86sec on my machine loading from an SSD)
-        dictionary = Dictionary.load_from_text('dictionary.txt.bz2')
+        dictionary = Dictionary.load_from_text('./data/dictionary.txt.bz2')
     
         # Load the bag-of-words vectors back from disk.
         # (0.8sec on my machine loading from an SSD)
-        mm = MmCorpus('./data/bow.mm')    
+        corpus_bow = MmCorpus('./data/bow.mm')    
         
     
     # ======== STEP 3: Learn tf-idf model ========
@@ -150,10 +181,11 @@ if __name__ == '__main__':
         t0 = time.time()
         
         # Build a Tfidf Model from the bag-of-words dataset.
-        tfidf = TfidfModel(mm, id2word=dictionary, normalize=True)
-        tfidf.save('./data/tfidf.tfidf_model')
+        # This took 46.66 min. on my machine.
+        model_tfidf = TfidfModel(corpus_bow, id2word=dictionary, normalize=True)
 
         print 'Building tf-idf model took %.2f min.' % ((time.time() - t0) / 60)
+        model_tfidf.save('./data/tfidf.tfidf_model')
 
     # ======== STEP 4: Convert articles to tf-idf ======== 
     # We've learned the word statistics and built a tf-idf model, now it's time
@@ -162,8 +194,52 @@ if __name__ == '__main__':
         print 'Applying tf-idf model to all vectors...'
         t0 = time.time()
         
+        # Load the tfidf model back from disk if you need to
+        # TODO if 'model_tfidf' doesn't exist.        
+        
+        # TODO ....
         # save tfidf vectors in matrix market format
         # ~4h; result file is 15GB! bzip2'ed down to 4.5GB
-        MmCorpus.serialize('./data/tfidf.mm', tfidf[mm], progress_cnt=10000)
-
+        MmCorpus.serialize('./data/corpus_tfidf.mm', model_tfidf[corpus_bow], progress_cnt=10000)
         
+        print 'Applying tf-idf model took %.2f hrs.' % ((time.time() - t0) / 3600)
+
+    # ======== STEP 5: Train LSI on the articles ========
+    # Learn an LSI model from the tf-idf vectors.
+    if True:
+        
+        # The number of topics to use.
+        num_topics = 300
+        
+        # Load the tf-idf corpus back from disk.
+        corpus_tfidf = MmCorpus('./data/corpus_tfidf.mm')        
+        
+        # Train LSI
+        # TODO - How long does it take?
+        print 'Learning LSI model from the tf-idf vectors...'
+        t0 = time.time()
+        
+        # Build the LSI model
+        # TODO ...
+        model_lsi = LsiModel(corpus_tfidf, num_topics=num_topics, id2word=dictionary)   
+    
+        print 'Building LSI model took %.2f hrs.' % (time.time() - t0 / 3600)    
+
+        # Write out the LSI model to disk.
+        model_lsi.save('./data/lsi.lsi_model')
+    
+    # ========= STEP 6: Convert articles to LSI representation ========
+    # Transform corpus to LSI space and index it
+    if True:
+        
+        print 'Applying LSI model to all vectors...'        
+        t0 = time.time()
+        
+        # Apply the LSI model to all of the tf-idf vectors and write them
+        # to disk.
+        MmCorpus.serialize('./data/corpus_lsi.mm', model_lsi[corpus_tfidf], progress_cnt=10000)    
+        
+        print 'Applying LSI model took %.2f hrs.' % ((time.time() - t0) / 3600)
+    
+    # ======== STEP 7: Create MatrixSimilarity index ========  
+        #self.index = similarities.MatrixSimilarity(self.lsi[self.ksearch.corpus_tfidf], num_features=num_topics) 

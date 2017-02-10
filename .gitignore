@@ -87,3 +87,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+data/enwiki-latest-pages-articles.xml.bz2
+data/tfidf.tfidf_model
+data/bow.mm
