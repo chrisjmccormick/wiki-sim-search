@@ -16,7 +16,7 @@ My changes were the following:
 * I modified the script to save out the names of all of the Wikipedia articles as well, so that you could perform searches against the dataset and get the names of the matching articles.
 * I added the conversion to LSI step.
 
-+++ What to expect
++++What to expect
 
 I pulled down the latest Wikipedia dump on 1/18/17; here are some statistics on it:
 
@@ -25,7 +25,7 @@ I pulled down the latest Wikipedia dump on 1/18/17; here are some statistics on 
 <tr><td>4,198,780</td><td>Number of articles after filtering out "article redirects" and "short stubs"</td></tr>
 <tr><td>2,355,066,808</td><td>Total number of tokens in all articles (without any filtering)</td></tr>
 <tr><td>2,292,505,314</td><td>Total number of tokens after filtering articles</td></tr>
-<tr><td>8,746,676</td><td></td>Total number of unique words found in all articles (*after* filtering articles)</tr>
+<tr><td>8,746,676</td><td>Total number of unique words found in all articles (*after* filtering articles)</td></tr>
 </table>
 
 Vectorizing all of Wikipedia is a fairly lengthy process, and the data files are large. Here is what you can expect from each step of the process.
@@ -46,7 +46,7 @@ These numbers are from running on my desktop PC, which has an Intel Core i7 4770
 
 * TODO - I think you can delete the bow.mm at a minimum...
 
-+++ Running the script
++++Running the script
 
 * TODO - Point to dump file download.
 
