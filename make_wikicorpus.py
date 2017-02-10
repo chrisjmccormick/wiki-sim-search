@@ -7,10 +7,6 @@ bz2-compressed dump of Wikipedia articles, in XML format.
 This script was built on the one provided in gensim: 
 `gensim.scripts.make_wikicorpus`
 
-This creates the following files:
-
-* `wiki_wordids.txt.bz2`: mapping between words and their integer ids
-
 """
 
 from gensim.models import TfidfModel, LsiModel
@@ -205,7 +201,7 @@ if __name__ == '__main__':
         # TODO ...
         model_lsi = LsiModel(corpus_tfidf, num_topics=num_topics, id2word=dictionary)   
     
-        print 'Building LSI model took %.2f hrs.' % (time.time() - t0 / 3600)    
+        print 'Building LSI model took %.2f hrs.' % ((time.time() - t0) / 3600)    
 
         # Write out the LSI model to disk.
         model_lsi.save('./data/lsi.lsi_model')
