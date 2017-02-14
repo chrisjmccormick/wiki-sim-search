@@ -1,10 +1,10 @@
 # wiki-sim-search
 Similarity search on Wikipedia using gensim in Python.
 
-This project provides two features:
+The goals of this project are the following two features:
 
-1. Creates vector representations of all the articles in English Wikipedia using a modified version of the make_wikicorpus.py script in gensim.
-2. (Coming Soon) Allows you to perform concept searches and other fun text analysis on Wikipedia, also using gensim functionality.
+1. Create LSI vector representations of all the articles in English Wikipedia using a modified version of the make_wikicorpus.py script in gensim.
+2. Perform concept searches and other fun text analysis on Wikipedia, also using gensim functionality.
 
 Generating Vector Representations
 =================================
@@ -43,6 +43,12 @@ These numbers are from running on my desktop PC, which has an Intel Core i7 4770
 <tr><td>6</td><td>Learn LSI model with 300 topics</td><td>~4hrs. ??</td><td>lsi.lsi_model</td><td>3.46 MB</td></tr>
 <tr><td>7</td><td>Convert articles to LSI</td><td>2.57 hrs.</td><td>corpus_lsi.mm</td><td>33.2 GB</td></tr>
 </table>
+
+The final LSI matrix is pretty huge. We have ~4.2M articles with 300 features, and the features are 64-bit (8-byte) doubles. 
+
+To store this matrix in memory, we need (4.2E6 * 300 * 8) / (2^30) = ~9.4GB of RAM!
+
+* TODO - I'm looking at how you save this LSI index, how long it takes to load, etc...
 
 * TODO - I think you can delete the bow.mm at a minimum...
 
