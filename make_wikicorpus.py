@@ -11,8 +11,8 @@ This script was built on the one provided in gensim:
 
 from gensim.models import TfidfModel, LsiModel
 from gensim.corpora import Dictionary, WikiCorpus, MmCorpus
-from gensim import utils
 from gensim import similarities
+from gensim import utils
 import time
 import sys
 import logging
@@ -27,6 +27,7 @@ def formatTime(seconds):
     h, m = divmod(m, 60)
     return "%d:%02d" % (h, m)
 
+# TODO - Add example code for loading each item back from disk (if needed).
    
 
 # ======== main ========
@@ -143,6 +144,27 @@ if __name__ == '__main__':
         
         print '\nConversion to bag-of-words took %s' % formatTime(time.time() - t0)
         sys.stdout.flush()
+
+        # Load the article titles back
+        id_to_titles = utils.unpickle('./data/bow.mm.metadata.cpickle')
+    
+        # Create the reverse mapping, from article title to index.
+        titles_to_id = {}
+
+        # For each article...
+        for at in id_to_titles.items():
+            # `at` is (index, (pageid, article_title))  e.g., (0, ('12', 'Anarchism'))
+            # at[1][1] is the article title.
+            # The pagied property is unused.
+            titles_to_id[at[1][1]] = at[0]
+        
+        # Store the resulting map.
+        utils.pickle(titles_to_id, './data/titles_to_id.pickle')
+
+        # We're done with the article titles so free up their memory.
+        del id_to_titles
+        del titles_to_id
+    
     
         # To clean up some memory, we can delete our original dictionary and 
         # wiki objects, and load back the dictionary directly from the file.
@@ -209,8 +231,7 @@ if __name__ == '__main__':
         print 'Building LSI model took %s' % formatTime(time.time() - t0)
 
         # Write out the LSI model to disk.
-        # The LSI model isn't too huge... It's 100,000 x 300, with 8 bytes per
-        # double. 
+        # The LSI model is big but not as big as the corpus.
         #  100,000 words x 300 topics x 8-bytes per val x (1MB / 2^20 bytes) = ~229MB
         model_lsi.save('./data/lsi.lsi_model')
     
