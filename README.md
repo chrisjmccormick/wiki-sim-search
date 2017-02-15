@@ -62,10 +62,12 @@ To store this matrix in memory, we need (4.2E6 * 300 * 4) / (2^30) = 4.69GB of R
 
 ### Running the script ###
 
-* TODO - Point to dump file download.
+Before running the script, download the latest Wikipedia dump here:
+https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
 
+Save the dump file in the ./data/ directory of this project.
 
+Then, run `make_wikicorpus.py` to fully parse Wikipedia and generate the LSI index!
 
-Concept Searches on Wikipedia
-=============================
+## Concept Searches on Wikipedia ##
 Coming soon.
