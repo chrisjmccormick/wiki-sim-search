@@ -199,17 +199,19 @@ if __name__ == '__main__':
         corpus_tfidf = MmCorpus('./data/corpus_tfidf.mm')        
         
         # Train LSI
-        # TODO - How long does it take?
         print 'Learning LSI model from the tf-idf vectors...'
         t0 = time.time()
         
         # Build the LSI model
-        # TODO ...
+        # TODO - How long did this take?
         model_lsi = LsiModel(corpus_tfidf, num_topics=num_topics, id2word=dictionary)   
     
         print 'Building LSI model took %s' % formatTime(time.time() - t0)
 
         # Write out the LSI model to disk.
+        # The LSI model isn't too huge... It's 100,000 x 300, with 8 bytes per
+        # double. 
+        #  100,000 words x 300 topics x 8-bytes per val x (1MB / 2^20 bytes) = ~229MB
         model_lsi.save('./data/lsi.lsi_model')
     
     # ========= STEP 6: Convert articles to LSI with index ========
