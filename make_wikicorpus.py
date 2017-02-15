@@ -12,6 +12,7 @@ This script was built on the one provided in gensim:
 from gensim.models import TfidfModel, LsiModel
 from gensim.corpora import Dictionary, WikiCorpus, MmCorpus
 from gensim import utils
+from gensim import similarities
 import time
 import sys
 import logging
@@ -111,7 +112,7 @@ if __name__ == '__main__':
     # Now that we have our finalized dictionary, we can create bag-of-words
     # representations for the Wikipedia articles. This means taking another
     # pass over the Wikipedia dump!
-    if True:
+    if False:
     
         # Load the dictionary if you're just running this section.
         dictionary = Dictionary.load_from_text('./data/dictionary.txt.bz2')
@@ -154,13 +155,13 @@ if __name__ == '__main__':
     # just have our bag-of-words representation.
     # Now we can look at the word frequencies and document frequencies to 
     # build a tf-idf model which we'll use in the next step.
-    if True:
+    if False:
         print 'Learning tf-idf model from data...'
         t0 = time.time()
         
         # Build a Tfidf Model from the bag-of-words dataset.
         # This took 46.66 min. on my machine.
-        model_tfidf = TfidfModel(corpus_bow, id2word=dictionary, normalize=True)
+        model_tfidf = TfidfModel(corpus_bow, id2word=dictionary, normalize=False)
 
         print 'Building tf-idf model took %.2f min.' % ((time.time() - t0) / 60)
         model_tfidf.save('./data/tfidf.tfidf_model')
@@ -168,7 +169,7 @@ if __name__ == '__main__':
     # ======== STEP 4: Convert articles to tf-idf ======== 
     # We've learned the word statistics and built a tf-idf model, now it's time
     # to apply it and convert the vectors to the tf-idf representation.
-    if True:
+    if False:
         print 'Applying tf-idf model to all vectors...'
         t0 = time.time()
         
@@ -184,7 +185,7 @@ if __name__ == '__main__':
 
     # ======== STEP 5: Train LSI on the articles ========
     # Learn an LSI model from the tf-idf vectors.
-    if True:
+    if False:
         
         # The number of topics to use.
         num_topics = 300
@@ -206,18 +207,27 @@ if __name__ == '__main__':
         # Write out the LSI model to disk.
         model_lsi.save('./data/lsi.lsi_model')
     
-    # ========= STEP 6: Convert articles to LSI representation ========
+    # ========= STEP 6: Convert articles to LSI with index ========
     # Transform corpus to LSI space and index it
-    if True:
+    if False:
         
         print 'Applying LSI model to all vectors...'        
         t0 = time.time()
         
-        # Apply the LSI model to all of the tf-idf vectors and write them
-        # to disk.
-        MmCorpus.serialize('./data/corpus_lsi.mm', model_lsi[corpus_tfidf], progress_cnt=10000)    
+        # You could apply Apply the LSI model to all of the tf-idf vectors and 
+        # write them to disk as an MmCorpus, but this is huge--33.2GB.
+        #MmCorpus.serialize('./data/corpus_lsi.mm', model_lsi[corpus_tfidf], progress_cnt=10000)    
+        
+        if True:        
+            # I think this creates a corpus around the file but doesn't try to
+            # load it into memory...            
+            print 'Loading the corpus...'
+            corpus_lsi = MmCorpus('./data/corpus_lsi.mm')        
+            num_topics = 300
+                
+        # I think it may be preferable to skip saving the LSI corpus and go
+        # straight to the similarity index:
+        index = similarities.MatrixSimilarity(model_lsi[corpus_tfidf])
+        index.save('./data/lsi_index.mm')
         
         print 'Applying LSI model took %.2f hrs.' % ((time.time() - t0) / 3600)
-    
-    # ======== STEP 7: Create MatrixSimilarity index ========  
-        #self.index = similarities.MatrixSimilarity(self.lsi[self.ksearch.corpus_tfidf], num_features=num_topics) 

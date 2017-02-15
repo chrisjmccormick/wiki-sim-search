@@ -34,21 +34,28 @@ These numbers are from running on my desktop PC, which has an Intel Core i7 4770
 
 <table>
 <tr><td>#</td><td>Step</td><td>Time</td><td>Output File</td><td>File Size</td></tr>
-<tr><td>1</td><td>Download Wikipedia Dump</td><td>?</td><td>enwiki-latest-pages-articles.xml.bz2</td><td>12.6 GB</td></tr>
-<tr><td>2</td><td>Parse Wikipedia & Build Dictionary</td><td>3.2 hrs.</td><td>dictionary.txt.bz2</td><td>769 KB</td></tr>
-<tr><td>3</td><td>Convert articles to bag-of-words vectors</td><td>3.53 hrs.</td><td>bow.mm</td><td>9.44 GB</td></tr>
-<tr><td>3a.</td><td>Store article titles</td><td>N/A</td><td>bow.mm.metadata.cpickle</td><td>152 MB</td></tr>
-<tr><td>4</td><td>Learn tf-idf model from document statistics</td><td>46.66 min.</td><td>tfidf.tfidf_model</td><td>4.01 MB</td></tr>
-<tr><td>5</td><td>Convert articles to tf-idf</td><td>???</td><td>corpus_tfidf.mm</td><td>17.9 GB</td></tr>
-<tr><td>6</td><td>Learn LSI model with 300 topics</td><td>~4hrs. ??</td><td>lsi.lsi_model</td><td>3.46 MB</td></tr>
-<tr><td>7</td><td>Convert articles to LSI</td><td>2.57 hrs.</td><td>corpus_lsi.mm</td><td>33.2 GB</td></tr>
+<tr><td>0</td><td>Download Wikipedia Dump</td><td>?</td><td>enwiki-latest-pages-articles.xml.bz2</td><td>12.6 GB</td></tr>
+<tr><td>1</td><td>Parse Wikipedia & Build Dictionary</td><td>3.2 hrs.</td><td>dictionary.txt.bz2</td><td>769 KB</td></tr>
+<tr><td>2</td><td>Convert articles to bag-of-words vectors</td><td>3.53 hrs.</td><td>bow.mm</td><td>9.44 GB</td></tr>
+<tr><td>2a.</td><td>Store article titles</td><td>N/A</td><td>bow.mm.metadata.cpickle</td><td>152 MB</td></tr>
+<tr><td>3</td><td>Learn tf-idf model from document statistics</td><td>46.66 min.</td><td>tfidf.tfidf_model</td><td>4.01 MB</td></tr>
+<tr><td>4</td><td>Convert articles to tf-idf</td><td>???</td><td>corpus_tfidf.mm</td><td>17.9 GB</td></tr>
+<tr><td>5</td><td>Learn LSI model with 300 topics</td><td>~4hrs. ??</td><td>lsi.lsi_model</td><td>3.46 MB</td></tr>
+<tr><td></td><td></td><td></td><td>lsi.lsi_model.projection.u.npy</td><td>228 MB</td></tr>
+<tr><td>6</td><td>Convert articles to LSI</td><td>0.96 hrs.</td><td>lsi_index.mm</td><td>1 KB</td></tr>
+<tr><td></td><td></td><td></td><td>lsi_index.mm.index.npy</td><td>4.69 GB</td></tr>
 </table>
 
-The final LSI matrix is pretty huge. We have ~4.2M articles with 300 features, and the features are 64-bit (8-byte) doubles. 
+I recommend converting the LSI vectors directly to a MatrixSimilarity class rather than performing the intermediate step of creating and saving an "LSI corpus". If you do, it takes longer and the resulting file is huge:
 
-To store this matrix in memory, we need (4.2E6 * 300 * 8) / (2^30) = ~9.4GB of RAM!
+<table>
+<tr><td>6</td><td>Convert articles to LSI</td><td>2.57 hrs.</td><td>corpus_lsi.mm</td><td>33.2 GB</td></tr>
+</table>
 
-* TODO - I'm looking at how you save this LSI index, how long it takes to load, etc...
+The final LSI matrix is pretty huge. We have ~4.2M articles with 300 features, and the features are 32-bit (4-byte) floats. 
+
+To store this matrix in memory, we need (4.2E6 * 300 * 4) / (2^30) = 4.69GB of RAM!
+
 
 * TODO - I think you can delete the bow.mm at a minimum...
 
