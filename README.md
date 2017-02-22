@@ -40,12 +40,12 @@ These numbers are from running on my desktop PC, which has an Intel Core i7 4770
 <tr><td>2a.</td><td>Store article titles</td><td>--</td><td>bow.mm.metadata.cpickle</td><td>152 MB</td></tr>
 <tr><td>3</td><td>Learn tf-idf model from document statistics</td><td>0:47</td><td>tfidf.tfidf_model</td><td>4.01 MB</td></tr>
 <tr><td>4</td><td>Convert articles to tf-idf</td><td>1:40</td><td>corpus_tfidf.mm</td><td>17.9 GB</td></tr>
-<tr><td>5</td><td>Learn LSI model with 300 topics</td><td>~2:07</td><td>lsi.lsi_model</td><td>3.46 MB</td></tr>
+<tr><td>5</td><td>Learn LSI model with 300 topics</td><td>2:07</td><td>lsi.lsi_model</td><td>3.46 MB</td></tr>
 <tr><td></td><td></td><td></td><td>lsi.lsi_model.projection</td><td>3 KB</td></tr>
 <tr><td></td><td></td><td></td><td>lsi.lsi_model.projection.u.npy</td><td>228 MB</td></tr>
 <tr><td>6</td><td>Convert articles to LSI</td><td>0:58</td><td>lsi_index.mm</td><td>1 KB</td></tr>
 <tr><td></td><td></td><td></td><td>lsi_index.mm.index.npy</td><td>4.69 GB</td></tr>
-<tr><td></td><td>TOTAL</td><td>*12:16*</td><td></td><td><em>45 GB</em></td></tr>
+<tr><td></td><td><strong>TOTALS</strong></td><td><strong>12:16</strong></td><td></td><td><strong>45 GB</strong></td></tr>
 </table>
 
 I recommend converting the LSI vectors directly to a MatrixSimilarity class rather than performing the intermediate step of creating and saving an "LSI corpus". If you do, it takes longer and the resulting file is huge:
