@@ -57,7 +57,6 @@ The final LSI matrix is pretty huge. We have ~4.2M articles with 300 features, a
 
 To store this matrix in memory, we need (4.2E6 * 300 * 4) / (2^30) = 4.69GB of RAM!
 
-
 * TODO - I think you can delete the bow.mm at a minimum...
 
 ### Running the script ###
@@ -68,6 +67,29 @@ https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
 Save the dump file in the ./data/ directory of this project.
 
 Then, run `make_wikicorpus.py` to fully parse Wikipedia and generate the LSI index!
+
+Example output:
+
+```
+Parsing Wikipedia to build Dictionary...
+    Building dictionary took 3:05
+    8746676 unique tokens before pruning.
+
+Converting to bag of words...
+    Conversion to bag-of-words took 3:47
+
+Learning tf-idf model from data...
+    Building tf-idf model took 0:47
+     
+Applying tf-idf model to all vectors...
+    Applying tf-idf model took 1:40
+
+Learning LSI model from the tf-idf vectors...
+    Building LSI model took 2:07
+
+Applying LSI model to all vectors...
+    Applying LSI model took 2:00
+```
 
 ## Concept Searches on Wikipedia ##
 Coming soon.
