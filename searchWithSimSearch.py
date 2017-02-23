@@ -26,7 +26,8 @@ def fprint(msg):
 
 def createSearchObjs():
     """
-    Creates the SimSearch and KeySearch objects.    
+    Creates the SimSearch and KeySearch objects using the data structures
+    created in `make_wikicorpus.py`.
     Returns (simsearch, keysearch, titles_to_id)
     """
     
@@ -35,6 +36,11 @@ def createSearchObjs():
     sys.stdout.flush()
     id_to_titles = utils.unpickle('./data/bow.mm.metadata.cpickle')
     titles_to_id = utils.unpickle('./data/titles_to_id.pickle')
+
+    # id_to_titles is actually a map of indeces to (pageid, article title)
+    # The 'pageid' property is unused.
+    # Convert id_to_titles into a simple list of titles.
+    titles = [item[1][1] for item in id_to_titles.items()]
     
     # Load the dictionary (830ms on my machine)
     fprint('\nLoading dictionary...')
@@ -64,7 +70,7 @@ def createSearchObjs():
     fprint('    Took %.2f seconds' % (time.time() - t0))            
     
     # Create the KeySearch and SimSearch objects.    
-    ksearch = KeySearch(dictionary, tfidf_model, corpus_tfidf, id_to_titles)
+    ksearch = KeySearch(dictionary, tfidf_model, corpus_tfidf, titles)
     simsearch = SimSearch(ksearch)
     
     # TODO - SimSearch doesn't currently have a clean way to provide the index
@@ -85,7 +91,8 @@ def createSearchObjs():
     
     fprint('    Took %.2f seconds' % (time.time() - t0))    
 
-    # TODO - It would be interesting to go straight to 'Similarity' which shards the dataset for you...
+    # TODO - It would be interesting to try the 'Similarity' class which 
+    #       shards the dataset on disk for you...
 
     return (simsearch, ksearch, titles_to_id)
 
@@ -115,7 +122,7 @@ simsearch.printResultsByTitle(results)
 fprint('\nSearch and sort took %.2f seconds' % (time.time() - t0))    
 
 # Lookup the name of the top matching article.
-top_match_article = ksearch.titles[results[0][0]][1]
+top_match_article = ksearch.titles[results[0][0]]
 
 fprint('\nInterpreting the match between \'' + query_article + '\' and \'' + top_match_article + '\' ...\n')
 t0 = time.time()

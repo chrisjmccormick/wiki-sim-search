@@ -95,4 +95,128 @@ Applying LSI model to all vectors...
 ```
 
 ## Concept Searches on Wikipedia ##
-Coming soon.
+Once you have the LSI vectors for Wikipedia, you're ready to perform similarity searches.
+
+### Basic Search Script ###
+The script `run_search.py` shows a bare bones approach to performing a similarity search with gensim. 
+
+Here is the example output:
+
+```
+Loading Wikipedia LSI index (15-30sec.)...
+   Loading LSI vectors took 13.03 seconds
+
+Loading Wikipedia article titles...
+
+Searching for articles similar to 'Topic model':
+    Similarity search took 320 ms
+    Sorting took 8.45 seconds
+
+Results:
+    Topic model
+    Online content analysis
+    Semantic similarity
+    Information retrieval
+    Data-oriented parsing
+    Concept search
+    Object-role modeling
+    Software analysis pattern
+    Content analysis
+    Adaptive hypermedia
+```
+
+### Advanced Search with SimSearch ###
+For some more bells and whistles, I've pulled over my SimSearch project.
+
+The SimSearch and KeySearch classes (in `simsearch.py` and `keysearch.py`) add a number of features:
+
+* Supply new text as the input to a similarity search.
+* Interpret similarity matches by looking at which words contributed most to the similarity.
+* Identify top words in clusters of documents.
+
+To see some of these features, look at and run `searchWithSimSearch.py`
+
+Example output:
+
+```
+Loading Wikipedia article titles
+
+Loading dictionary...
+    Took 0.81 seconds
+
+Loading tf-idf model...
+    Took 0.08 seconds
+
+Creating tf-idf corpus object (leaves the vectors on disk)...
+    Took 0.82 seconds
+
+Loading LSI model...
+    Took 0.73 seconds
+
+Loading Wikipedia LSI index...
+    Took 13.21 seconds
+
+Searching for similar articles...
+Most similar documents:
+  0.90    Online content analysis
+  0.90    Semantic similarity
+  0.89    Information retrieval
+  0.89    Data-oriented parsing
+  0.89    Concept search
+  0.89    Object-role modeling
+  0.89    Software analysis pattern
+  0.88    Content analysis
+  0.88    Adaptive hypermedia
+  0.88    Model-driven architecture
+
+Search and sort took 9.59 seconds
+
+Interpreting the match between 'Topic model' and 'Online content analysis' ...
+
+Words in doc 1 which contribute most to similarity:
+             text  +0.065
+             data  +0.059
+            model  +0.053
+           models  +0.043
+            topic  +0.034
+         modeling  +0.031
+         software  +0.028
+         analysis  +0.019
+           topics  +0.019
+       algorithms  +0.014
+          digital  +0.014
+            words  +0.012
+          example  +0.012
+         document  +0.011
+      information  +0.010
+         language  +0.010
+           social  +0.009
+           matrix  +0.008
+         identify  +0.008
+         semantic  +0.008
+
+Words in doc 2 which contribute most to similarity:
+         analysis  +0.070             trains  -0.001
+             text  +0.067
+          content  +0.054
+          methods  +0.035
+        algorithm  +0.029
+         research  +0.027
+           online  +0.026
+           models  +0.026
+             data  +0.014
+      researchers  +0.014
+            words  +0.013
+              how  +0.013
+    communication  +0.013
+           sample  +0.012
+           coding  +0.009
+         internet  +0.009
+              web  +0.009
+       categories  +0.008
+            human  +0.008
+           random  +0.008
+
+Interpreting match took 0.75 seconds
+```
+
