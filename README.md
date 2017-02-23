@@ -136,6 +136,9 @@ The SimSearch and KeySearch classes (in `simsearch.py` and `keysearch.py`) add a
 
 To see some of these features, look at and run `searchWithSimSearch.py`
 
+#### Example 1 #####
+Example 1 searches for articles similar to the article 'Topic model', and also interprets the top match.
+
 Example output:
 
 ```
@@ -220,3 +223,8 @@ Words in doc 2 which contribute most to similarity:
 Interpreting match took 0.75 seconds
 ```
 
+#### Example 2 ####
+Example 2 demonstrates searching using some new input text as the query. I've included the markdown for a couple of my blog articles as example material for the search.
+
+#### Example 3 ####
+Prints the top 10 words associated with each of the topics, and also writes these out to `topic_words.txt`
