@@ -77,7 +77,7 @@ if __name__ == '__main__':
         # we've supplied the dictionary.
         wiki = WikiCorpus(dump_file, dictionary=dictionary) 
         
-        print 'Parsing Wikipedia to build Dictionary...'    
+        print('Parsing Wikipedia to build Dictionary...')    
         sys.stdout.flush()
         
         t0 = time.time()
@@ -103,8 +103,8 @@ if __name__ == '__main__':
         # to see the total count of unique tokens before pruning.
         dictionary.add_documents(wiki.get_texts(), prune_at=None)            
                         
-        print '    Building dictionary took %s' % formatTime(time.time() - t0)
-        print '    %d unique tokens before pruning.' % len(dictionary)
+        print('    Building dictionary took %s' % formatTime(time.time() - t0))
+        print('    %d unique tokens before pruning.' % len(dictionary))
         sys.stdout.flush()
         
         keep_words = 100000    
@@ -136,7 +136,7 @@ if __name__ == '__main__':
         # Turn on metadata so that wiki.get_texts() returns the article titles.
         wiki.metadata = True         
     
-        print '\nConverting to bag of words...'
+        print('\nConverting to bag of words...')
         sys.stdout.flush()
         
         t0 = time.time()
@@ -148,7 +148,7 @@ if __name__ == '__main__':
         # titles into a separate pickle file, 'bow.mm.metadata.cpickle'
         MmCorpus.serialize('./data/bow.mm', wiki, metadata=True, progress_cnt=10000)
         
-        print '    Conversion to bag-of-words took %s' % formatTime(time.time() - t0)
+        print('    Conversion to bag-of-words took %s' % formatTime(time.time() - t0))
         sys.stdout.flush()
 
         # Load the article titles back
@@ -192,7 +192,7 @@ if __name__ == '__main__':
     # Now we can look at the word frequencies and document frequencies to 
     # build a tf-idf model which we'll use in the next step.
     if True:
-        print '\nLearning tf-idf model from data...'
+        print('\nLearning tf-idf model from data...')
         t0 = time.time()
         
         # Build a Tfidf Model from the bag-of-words dataset.
@@ -200,14 +200,14 @@ if __name__ == '__main__':
         # TODO - Why not normalize?
         model_tfidf = TfidfModel(corpus_bow, id2word=dictionary, normalize=False)
 
-        print '    Building tf-idf model took %s' % formatTime(time.time() - t0)
+        print('    Building tf-idf model took %s' % formatTime(time.time() - t0))
         model_tfidf.save('./data/tfidf.tfidf_model')
 
     # ======== STEP 4: Convert articles to tf-idf ======== 
     # We've learned the word statistics and built a tf-idf model, now it's time
     # to apply it and convert the vectors to the tf-idf representation.
     if True:
-        print '\nApplying tf-idf model to all vectors...'
+        print('\nApplying tf-idf model to all vectors...')
         t0 = time.time()
         
         # Apply the tf-idf model to all of the vectors.
@@ -215,7 +215,7 @@ if __name__ == '__main__':
         # The resulting corpus file is large--17.9 GB for me.        
         MmCorpus.serialize('./data/corpus_tfidf.mm', model_tfidf[corpus_bow], progress_cnt=10000)
         
-        print '    Applying tf-idf model took %s' % formatTime(time.time() - t0)
+        print('    Applying tf-idf model took %s' % formatTime(time.time() - t0))
 
     # ======== STEP 5: Train LSI on the articles ========
     # Learn an LSI model from the tf-idf vectors.
@@ -228,14 +228,14 @@ if __name__ == '__main__':
         corpus_tfidf = MmCorpus('./data/corpus_tfidf.mm')        
         
         # Train LSI
-        print '\nLearning LSI model from the tf-idf vectors...'
+        print('\nLearning LSI model from the tf-idf vectors...')
         t0 = time.time()
         
         # Build the LSI model
         # This took 2hrs. and 7min. on my machine.
         model_lsi = LsiModel(corpus_tfidf, num_topics=num_topics, id2word=dictionary)   
     
-        print '    Building LSI model took %s' % formatTime(time.time() - t0)
+        print('    Building LSI model took %s' % formatTime(time.time() - t0))
 
         # Write out the LSI model to disk.
         # The LSI model is big but not as big as the corpus.
@@ -248,7 +248,7 @@ if __name__ == '__main__':
     # Transform corpus to LSI space and index it
     if True:
         
-        print '\nApplying LSI model to all vectors...'        
+        print('\nApplying LSI model to all vectors...')
         t0 = time.time()
         
         # You could apply Apply the LSI model to all of the tf-idf vectors and 
@@ -260,4 +260,4 @@ if __name__ == '__main__':
         index = similarities.MatrixSimilarity(model_lsi[corpus_tfidf], num_features=num_topics)
         index.save('./data/lsi_index.mm')
         
-        print '    Applying LSI model took %s' % formatTime(time.time() - t0)
+        print('    Applying LSI model took %s' % formatTime(time.time() - t0))
