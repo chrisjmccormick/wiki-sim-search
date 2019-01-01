@@ -26,10 +26,7 @@ def formatTime(seconds):
     m, s = divmod(seconds, 60)
     h, m = divmod(m, 60)
     return "%d:%02d" % (h, m)
-
-# TODO - Add example code for loading each item back from disk (if needed).
-#      - Maybe a commented line below the 'save' command?
-   
+ 
 
 # ======== main ========
 # Main entry point for the script.
@@ -122,7 +119,10 @@ if __name__ == '__main__':
         # TODO -- This text format lets you peruse it, but you can
         # compress it better as binary...
         wiki.dictionary.save_as_text('./data/dictionary.txt.bz2')
-            
+    else:
+        # Nothing to do here.
+        print('')
+    
     # ======== STEP 2: Convert Articles To Bag-of-words ========    
     # Now that we have our finalized dictionary, we can create bag-of-words
     # representations for the Wikipedia articles. This means taking another
@@ -184,7 +184,14 @@ if __name__ == '__main__':
         # Load the bag-of-words vectors back from disk.
         # (0.8sec on my machine loading from an SSD)
         corpus_bow = MmCorpus('./data/bow.mm')    
-        
+    
+    # If we previously completed this step, just load the pieces we need.
+    else:
+        print('\nLoading the bag-of-words corpus from disk.')
+        # Load the bag-of-words vectors back from disk.
+        # (0.8sec on my machine loading from an SSD)
+        corpus_bow = MmCorpus('./data/bow.mm')    
+
     
     # ======== STEP 3: Learn tf-idf model ========
     # At this point, we're all done with the original Wikipedia text, and we 
@@ -202,6 +209,12 @@ if __name__ == '__main__':
 
         print('    Building tf-idf model took %s' % formatTime(time.time() - t0))
         model_tfidf.save('./data/tfidf.tfidf_model')
+    
+    # If we previously completed this step, just load the pieces we need.
+    else:
+        print('\nLoading the tf-idf model from disk.')
+        model_tfidf = TfidfModel.load('./data/tfidf.tfidf_model') 
+        
 
     # ======== STEP 4: Convert articles to tf-idf ======== 
     # We've learned the word statistics and built a tf-idf model, now it's time
@@ -216,6 +229,9 @@ if __name__ == '__main__':
         MmCorpus.serialize('./data/corpus_tfidf.mm', model_tfidf[corpus_bow], progress_cnt=10000)
         
         print('    Applying tf-idf model took %s' % formatTime(time.time() - t0))
+    else:
+        # Nothing to do here.
+        print('')
 
     # ======== STEP 5: Train LSI on the articles ========
     # Learn an LSI model from the tf-idf vectors.
@@ -243,6 +259,12 @@ if __name__ == '__main__':
         #  100,000 words x 300 topics x 8-bytes per val x (1MB / 2^20 bytes) = ~229MB
         #  This is saved as `lsi.lsi_model.projection.u.npy` 
         model_lsi.save('./data/lsi.lsi_model')
+    
+    # If we previously completed this step, just load the pieces we need.
+    else:
+        # Load the tf-idf corpus and trained LSI model back from disk.
+        corpus_tfidf = MmCorpus('./data/corpus_tfidf.mm')
+        model_lsi = LsiModel.load('./data/lsi.lsi_model')
     
     # ========= STEP 6: Convert articles to LSI with index ========
     # Transform corpus to LSI space and index it
